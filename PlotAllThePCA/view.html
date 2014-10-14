@@ -92,6 +92,7 @@
         <p> by Quek Xiu Cheng, Adapted from : <a href=http://bl.ocks.org/mbostock/4063663>Scatterplot Matrix Brushing</a>  </p>
         <form>
             <label>No of components : <span id="pcaCount"></span> <input id="nRadius" step="1" value="" autocomplete="off" ></label>
+            <input type="file" id="filereader" onchange="chooseFile(this.files[0].name)" autocomplete="off">
 
 
         </form>
@@ -111,14 +112,14 @@
 <script src="js/d3.v3.min.js"></script>
 <script>
 
-    var constructRangeInput = function(){
-        d3.csv("PCValues.csv", function (error, data) {
+    var constructRangeInput = function(filename){
+        d3.csv(filename, function (error, data) {
             var max_PCA = Object.keys(data[0]).length - 1
             d3.select('input')
                     .attr('max', max_PCA)
                     .attr('min', 2)
                     .attr('type', 'range')
-                    .attr('value', 4)
+                    .attr('value', 2)
 
 
         })
@@ -126,25 +127,55 @@
     };
 
 
-    constructRangeInput();
+    constructRangeInput('PCValues.csv');
+
+    var chooseFile =  function(filename){
+
+        constructRangeInput(filename)
+        changeSpanInput(2)
+        plotty(2, filename)
+
+
+    }
+
+
+
+
+
+
+
 
     var changeSpanInput =  function(val){
         d3.select('#pcaCount').text(val)
     }
 
 
-    changeSpanInput(4)
+    changeSpanInput(2)
 
-    d3.select('input').on("change", function(){
+    d3.select('#nRadius').on("change", function(){
         d3.select("svg").remove()
-        plotty(this.value)
+        var currentFile = document.getElementById('filereader')
+        if (typeof currentFile.files[0] === 'undefined'){
+            plotty(this.value, 'PCValues.csv')
+        }
+        else {
+            plotty(this.value, currentFile.files[0].name)
+        }
         changeSpanInput(this.value)
 
     })
 
 
+    var jsonPaser = function(text){
+        var text_array = text.split('\n')
 
-    var plotty = function(component) {
+
+    }
+
+
+
+    var plotty = function(component, filename) {
+        d3.select("svg").remove()
 
         var PCA_no = parseInt(component) + 1
 
@@ -174,7 +205,7 @@
 
         var color = d3.scale.category10();
 
-        d3.csv("PCValues.csv", function (error, data) {
+        d3.csv(filename, function (error, data) {
             var object_keys = Object.keys(data[0])
             object_keys = object_keys.splice(0, PCA_no)
             console.log(object_keys)
@@ -185,12 +216,14 @@
                     }),
                     n = traits.length;
 
+            console.log(traits)
+
             traits.forEach(function (trait) {
                 domainByTrait[trait] = d3.extent(data, function (d) {
                     return d[trait];
                 });
             });
-
+            console.log(data)
             xAxis.tickSize(size * n);
             yAxis.tickSize(-size * n);
 
@@ -317,7 +350,7 @@
         });
     }
 
-    plotty(4)
+    plotty(2,'PCValues.csv')
 
 
 
