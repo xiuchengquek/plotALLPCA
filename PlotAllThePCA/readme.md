@@ -2,7 +2,15 @@
 
 Simple implementation of [Scatterplot Matrix Brushing](http://bl.ocks.org/mbostock/4063663) with some nagivation function
 
+Similiar to R's : 
+
+```
+pairs(~C1+C2+C3+C4+C5+C6, df)
+```
+
+
 demo : [Squamous Cell Carcinoma PCA](https://pwbc.garvan.org.au/~xiuque/plotALLPCA/PlotAllThePCA/view.html)
+
 
 
 ## IMPORTANT!
@@ -10,6 +18,8 @@ demo : [Squamous Cell Carcinoma PCA](https://pwbc.garvan.org.au/~xiuque/plotALLP
 As the code do not handle negative value very well. You will have to recenter your PCA plot to ensure that all values 
 are positive. By convention, PCA plots are zero-centered.
 
+
+## Usage 
 
 To use : 
  
