@@ -74,6 +74,17 @@
     #head {
         display: inline-block;
     }
+
+    #mid{
+        display: block;
+    }
+
+
+    #bottom{
+        display: block;
+    }
+
+
     p{
         margin-bottom: 5px;
         padding: 0;
@@ -96,7 +107,11 @@
 
 
         </form>
+        <a href="help.html">Click here for help!!</a>
+
+
     </div>
+
 </div>
 
 
@@ -107,9 +122,18 @@
 
 
 </div>
-<div id="bottom"></div>
+<div id="bottom">
+    <p>Le Legend</p>
+    <ul id="sampleList">
+
+    </ul>
+
+</div>
 
 <script src="js/d3.v3.min.js"></script>
+<script src="js/jquery-2.1.0.min.js"></script>
+
+
 <script>
 
     var constructRangeInput = function(filename){
@@ -175,12 +199,48 @@
 
 
     var plotty = function(component, filename) {
+
+
+        var quickLegendGenerator = function (current_list, data, colourScale){
+            $('#sampleList').children().remove()
+            var sample_collection = {}
+
+            data.forEach(function(val, index){
+
+
+                if (val.sample in sample_collection){
+
+
+
+                }
+                else {
+                    sample_collection[val.sample] = 0
+                    $('#sampleList').append('<li style="color:' + colourScale(val.sample) + '">' + val.sample + '</li>')
+                }
+
+
+            })
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         d3.select("svg").remove()
 
         var PCA_no = parseInt(component) + 1
 
 
-        console.log('plotty is called')
 
 
         var width = 960,
@@ -208,7 +268,6 @@
         d3.csv(filename, function (error, data) {
             var object_keys = Object.keys(data[0])
             object_keys = object_keys.splice(0, PCA_no)
-            console.log(object_keys)
             var domainByTrait = {},
 
                     traits = object_keys.filter(function (d) {
@@ -216,14 +275,17 @@
                     }),
                     n = traits.length;
 
-            console.log(traits)
+
+
 
             traits.forEach(function (trait) {
                 domainByTrait[trait] = d3.extent(data, function (d) {
                     return d[trait];
                 });
             });
-            console.log(data)
+
+
+
             xAxis.tickSize(size * n);
             yAxis.tickSize(-size * n);
 
@@ -234,7 +296,7 @@
                     .on("brush", brushmove)
                     .on("brushend", brushend);
 
-            var svg = d3.select("body").append("svg")
+            var svg = d3.select("#mid").append("svg")
                     .attr("width", size * n + padding)
                     .attr("height", size * n + padding)
                     .append("g")
@@ -314,6 +376,36 @@
                         });
             }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            quickLegendGenerator(traits, data, color)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             var brushCell;
 
             // Clear the previously-active brush, if any.
@@ -347,6 +439,11 @@
             }
 
             d3.select(self.frameElement).style("height", size * n + padding + 20 + "px");
+
+
+
+
+
         });
     }
 
