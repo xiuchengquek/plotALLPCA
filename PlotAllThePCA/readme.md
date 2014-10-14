@@ -2,6 +2,8 @@
 
 Simple implementation of [Scatterplot Matrix Brushing](http://bl.ocks.org/mbostock/4063663) with some nagivation function
 
+demo : [Squamous Cell Carcinoma PCA](https://pwbc.garvan.org.au/~xiuque/plotALLPCA/PlotAllThePCA/view.html)
+
 To use : 
  
  `git clone https://github.com/xiuchengquek/plotALLPCA.git`
