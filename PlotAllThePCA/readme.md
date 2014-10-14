@@ -4,6 +4,13 @@ Simple implementation of [Scatterplot Matrix Brushing](http://bl.ocks.org/mbosto
 
 demo : [Squamous Cell Carcinoma PCA](https://pwbc.garvan.org.au/~xiuque/plotALLPCA/PlotAllThePCA/view.html)
 
+
+## IMPORTANT!
+
+As the code do not handle negative value very well. You will have to recenter your PCA plot to ensure that all values 
+are positive. By convention, PCA plots are zero-centered.
+
+
 To use : 
  
  `git clone https://github.com/xiuchengquek/plotALLPCA.git`
@@ -34,6 +41,16 @@ healthy,1,2,4,5
 healthy,1,4,6,7
 healthy,4,5,1,2
 healthy,5,1,6,7
+```
+
+
+To obtain these values from R:
+
+```
+x <- matrix(rnorm(1000*6,sd=sd),1000,6)
+rownames(x) <- paste("Gene",1:1000)
+x<- prcomp(x)
+x$rotation ## will contain your data  
 ```
 
 Note that the colour of the dots will be represented by the sample
