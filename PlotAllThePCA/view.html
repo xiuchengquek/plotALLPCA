@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+
+    body {
+        font-family: "Helvetica Neue", Helvetica,  sans-serif;
+        margin: auto;
+        width: 960px;
+
+    }
+
+
+    h1 {
+        font-size: 64px;
+        font-weight: 300;
+        letter-spacing: -2px;
+        margin: .3em 0 .1em 0;
+    }
+
+    h2 {
+        margin-top: 2em;
+    }
+
+    h1, h2 {
+        text-rendering: optimizeLegibility;
+    }
+
+    svg {
+        font: 10px sans-serif;
+        padding: 10px;
+    }
+
+    .axis,
+    .frame {
+        shape-rendering: crispEdges;
+    }
+
+    .axis line {
+        stroke: #ddd;
+    }
+
+    .axis path {
+        display: none;
+    }
+
+    .frame {
+        fill: none;
+        stroke: #aaa;
+    }
+
+    circle {
+        fill-opacity: .7;
+    }
+
+    circle.hidden {
+        fill: #ccc !important;
+    }
+
+    .extent {
+        fill: #000;
+        fill-opacity: .125;
+        stroke: #fff;
+    }
+
+
+    img {
+        width: 90%;
+        height: 90%;
+
+    }
+
+
+    #head {
+        display: inline-block;
+    }
+    p{
+        margin-bottom: 5px;
+        padding: 0;
+    }
+
+</style>
+<body>
+<div id="head">
+    <div style="width: 30%; float:left">
+        <img src="55279172.jpg"/>
+    </div>
+
+
+    <div style="width: 70%; float:right">
+        <h1> Plot all the PCA</h1>
+        <p> by Quek Xiu Cheng, Adapted from : <a href=http://bl.ocks.org/mbostock/4063663>Scatterplot Matrix Brushing</a>  </p>
+        <form>
+            <label>No of components : <span id="pcaCount"></span> <input id="nRadius" step="1" value="" autocomplete="off" ></label>
+
+
+        </form>
+    </div>
+</div>
+
+
+
+
+
+<div id="mid">
+
+
+</div>
+<div id="bottom"></div>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+    var constructRangeInput = function(){
+        d3.csv("PCValues.csv", function (error, data) {
+            var max_PCA = Object.keys(data[0]).length - 1
+            d3.select('input')
+                    .attr('max', max_PCA)
+                    .attr('min', 2)
+                    .attr('type', 'range')
+                    .attr('value', 4)
+
+
+        })
+
+    };
+
+
+    constructRangeInput();
+
+    var changeSpanInput =  function(val){
+        d3.select('#pcaCount').text(val)
+    }
+
+
+    changeSpanInput(4)
+
+    d3.select('input').on("change", function(){
+        d3.select("svg").remove()
+        plotty(this.value)
+        changeSpanInput(this.value)
+
+    })
+
+
+
+    var plotty = function(component) {
+
+        var PCA_no = parseInt(component) + 1
+
+
+        console.log('plotty is called')
+
+
+        var width = 960,
+                size = 150,
+                padding = 19.5;
+
+        var x = d3.scale.linear()
+                .range([padding / 2, size - padding / 2]);
+
+        var y = d3.scale.linear()
+                .range([size - padding / 2, padding / 2]);
+
+        var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom")
+                .ticks(5);
+
+        var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left")
+                .ticks(5);
+
+        var color = d3.scale.category10();
+
+        d3.csv("PCValues.csv", function (error, data) {
+            var object_keys = Object.keys(data[0])
+            object_keys = object_keys.splice(0, PCA_no)
+            console.log(object_keys)
+            var domainByTrait = {},
+
+                    traits = object_keys.filter(function (d) {
+                        return d !== "sample";
+                    }),
+                    n = traits.length;
+
+            traits.forEach(function (trait) {
+                domainByTrait[trait] = d3.extent(data, function (d) {
+                    return d[trait];
+                });
+            });
+
+            xAxis.tickSize(size * n);
+            yAxis.tickSize(-size * n);
+
+            var brush = d3.svg.brush()
+                    .x(x)
+                    .y(y)
+                    .on("brushstart", brushstart)
+                    .on("brush", brushmove)
+                    .on("brushend", brushend);
+
+            var svg = d3.select("body").append("svg")
+                    .attr("width", size * n + padding)
+                    .attr("height", size * n + padding)
+                    .append("g")
+                    .attr("transform", "translate(" + padding + "," + padding / 2 + ")");
+
+            svg.selectAll(".x.axis")
+                    .data(traits)
+                    .enter().append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", function (d, i) {
+                        return "translate(" + (n - i - 1) * size + ",0)";
+                    })
+                    .each(function (d) {
+                        x.domain(domainByTrait[d]);
+                        d3.select(this).call(xAxis);
+                    });
+
+            svg.selectAll(".y.axis")
+                    .data(traits)
+                    .enter().append("g")
+                    .attr("class", "y axis")
+                    .attr("transform", function (d, i) {
+                        return "translate(0," + i * size + ")";
+                    })
+                    .each(function (d) {
+                        y.domain(domainByTrait[d]);
+                        d3.select(this).call(yAxis);
+                    });
+
+            var cell = svg.selectAll(".cell")
+                    .data(cross(traits, traits))
+                    .enter().append("g")
+                    .attr("class", "cell")
+                    .attr("transform", function (d) {
+                        return "translate(" + (n - d.i - 1) * size + "," + d.j * size + ")";
+                    })
+                    .each(plot);
+
+            // Titles for the diagonal.
+            cell.filter(function (d) {
+                return d.i === d.j;
+            }).append("text")
+                    .attr("x", padding)
+                    .attr("y", padding)
+                    .attr("dy", ".71em")
+                    .text(function (d) {
+                        return d.x;
+                    });
+
+            cell.call(brush);
+
+            function plot(p) {
+                var cell = d3.select(this);
+
+                x.domain(domainByTrait[p.x]);
+                y.domain(domainByTrait[p.y]);
+
+                cell.append("rect")
+                        .attr("class", "frame")
+                        .attr("x", padding / 2)
+                        .attr("y", padding / 2)
+                        .attr("width", size - padding)
+                        .attr("height", size - padding);
+
+                cell.selectAll("circle")
+                        .data(data)
+                        .enter().append("circle")
+                        .attr("cx", function (d) {
+                            return x(d[p.x]);
+                        })
+                        .attr("cy", function (d) {
+                            return y(d[p.y]);
+                        })
+                        .attr("r", 3)
+                        .style("fill", function (d) {
+                            return color(d.sample);
+                        });
+            }
+
+            var brushCell;
+
+            // Clear the previously-active brush, if any.
+            function brushstart(p) {
+                if (brushCell !== this) {
+                    d3.select(brushCell).call(brush.clear());
+                    x.domain(domainByTrait[p.x]);
+                    y.domain(domainByTrait[p.y]);
+                    brushCell = this;
+                }
+            }
+
+            // Highlight the selected circles.
+            function brushmove(p) {
+                var e = brush.extent();
+                svg.selectAll("circle").classed("hidden", function (d) {
+                    return e[0][0] > d[p.x] || d[p.x] > e[1][0]
+                            || e[0][1] > d[p.y] || d[p.y] > e[1][1];
+                });
+            }
+
+            // If the brush is empty, select all circles.
+            function brushend() {
+                if (brush.empty()) svg.selectAll(".hidden").classed("hidden", false);
+            }
+
+            function cross(a, b) {
+                var c = [], n = a.length, m = b.length, i, j;
+                for (i = -1; ++i < n;) for (j = -1; ++j < m;) c.push({x: a[i], i: i, y: b[j], j: j});
+                return c;
+            }
+
+            d3.select(self.frameElement).style("height", size * n + padding + 20 + "px");
+        });
+    }
+
+    plotty(4)
+
+
+
+
+
+
+
+
+</script>
