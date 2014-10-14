@@ -5,7 +5,7 @@ Simple implementation of [Scatterplot Matrix Brushing](http://bl.ocks.org/mbosto
 Similiar to R's : 
 
 ```
-pairs(~C1+C2+C3+C4+C5+C6, df)
+pairs(x, ...)
 ```
 
 
@@ -13,10 +13,14 @@ demo : [Squamous Cell Carcinoma PCA](https://pwbc.garvan.org.au/~xiuque/plotALLP
 
 
 
+
 ## IMPORTANT!
 
-As the code do not handle negative value very well. You will have to recenter your PCA plot to ensure that all values 
+As the code do not handle negative value very well. When using for PCA plot analysis, you will have to recenter your PCA plot to ensure that all values 
 are positive. By convention, PCA plots are zero-centered.
+
+
+
 
 
 ## Usage 
@@ -60,7 +64,8 @@ To obtain these values from R:
 x <- matrix(rnorm(1000*6,sd=sd),1000,6)
 rownames(x) <- paste("Gene",1:1000)
 x<- prcomp(x)
-x$rotation ## will contain your data  
+x$rotation ## will contain your data, zero-centered
+x$rotation + 2 ## wil change your data to  2,2 center 
 ```
 
 Note that the colour of the dots will be represented by the sample
